@@ -1,3 +1,4 @@
+use generic_array::{GenericArray, ArrayLength, typenum::U32};
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
@@ -6,6 +7,18 @@ use zeroize::Zeroize;
 #[zeroize(drop)]
 #[serde(transparent)]
 pub struct ByteVec(#[serde(with = "crate::utils::serde_base64")] Vec<u8>);
+
+impl ByteVec {
+    pub fn from_slice(slice: &[u8]) -> Self {
+        slice.into()
+    }
+}
+
+// impl<T: Into<GenericArray<u8, U32>>> From<T> for ByteVec {
+//     fn from(arr: T) -> Self {
+//         Self(arr.into())
+//     }
+// }
 
 impl std::fmt::Debug for ByteVec {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

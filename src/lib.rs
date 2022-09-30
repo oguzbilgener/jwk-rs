@@ -71,10 +71,8 @@ mod utils;
 
 use std::{borrow::Cow, fmt};
 
-use generic_array::typenum::U32;
 use serde::{Deserialize, Serialize};
 
-pub use byte_array::ByteArray;
 pub use byte_vec::ByteVec;
 pub use key_ops::KeyOps;
 
@@ -164,6 +162,12 @@ impl JsonWebKey {
                     curve: Curve::P256, ..
                 },
             )
+            | (
+                ES384,
+                EC {
+                    curve: Curve::P384, ..
+                },
+            )
             | (RS256, RSA { .. })
             | (HS256, Symmetric { .. }) => Ok(()),
             _ => Err(Error::MismatchedAlgorithm),
@@ -203,11 +207,11 @@ pub enum Key {
         #[serde(rename = "crv")]
         curve: Curve,
         #[serde(skip_serializing_if = "Option::is_none")]
-        d: Option<ByteArray<U32>>,
+        d: Option<ByteVec>,
         /// The curve point x coordinate.
-        x: ByteArray<U32>,
+        x: ByteVec,
         /// The curve point y coordinate.
-        y: ByteArray<U32>,
+        y: ByteVec,
     },
     /// An elliptic curve, as per [RFC 7518 §6.3](https://tools.ietf.org/html/rfc7518#section-6.3).
     /// See also: [RFC 3447](https://tools.ietf.org/html/rfc3447).
@@ -469,9 +473,9 @@ impl Key {
 
         Self::EC {
             curve: Curve::P256,
-            d: Some(sk_scalar.to_bytes().into()),
-            x: ByteArray::from_slice(x_bytes),
-            y: ByteArray::from_slice(y_bytes),
+            d: Some(sk_scalar.to_bytes().to_vec().into()),
+            x: ByteVec::from_slice(x_bytes),
+            y: ByteVec::from_slice(y_bytes),
         }
     }
 }
@@ -481,12 +485,15 @@ pub enum Curve {
     /// The prime256v1 (P256) curve.
     #[serde(rename = "P-256")]
     P256,
+    #[serde(rename = "P-384")]
+    P384,
 }
 
 impl Curve {
     pub fn name(&self) -> &'static str {
         match self {
             Self::P256 => "P-256",
+            Self::P384 => "P-384",
         }
     }
 }
@@ -574,6 +581,7 @@ pub enum Algorithm {
     HS256,
     RS256,
     ES256,
+    ES384,
 }
 
 impl Algorithm {
@@ -582,6 +590,7 @@ impl Algorithm {
             Self::HS256 => "hs256",
             Self::RS256 => "rs256",
             Self::ES256 => "es256",
+            Self::ES384 => "es384",
         }
     }
 }
@@ -596,6 +605,7 @@ const _IMPL_JWT_CONVERSIONS: () = {
                 Algorithm::HS256 => Self::HS256,
                 Algorithm::ES256 => Self::ES256,
                 Algorithm::RS256 => Self::RS256,
+                Algorithm::ES384 => Self::ES384,
             }
         }
     }

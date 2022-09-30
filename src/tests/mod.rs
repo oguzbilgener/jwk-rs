@@ -7,7 +7,6 @@ use super::*;
 
 use std::str::FromStr;
 
-use crate::byte_array::ByteArray;
 
 // Generated using https://mkjwk.org
 static P256_JWK_FIXTURE: &str = r#"{
@@ -19,6 +18,17 @@ static P256_JWK_FIXTURE: &str = r#"{
         "x": "QOMHmv96tVlJv-uNqprnDSKIj5AiLTXKRomXYnav0N0",
         "y": "TjYZoHnctatEE6NCrKmXQdJJPnNzZEX8nBmZde3AY4k",
         "alg": "ES256"
+    }"#;
+
+static P384_JWK_FIXTURE: &str = r#"{
+        "kty": "EC",
+        "d": "YtFTAOjS1kjs88auG2rmVrBeks3PLSzP4E6vemUnJV3D3DCAgZNfrAXON3CYt9yN",
+        "use": "sig",
+        "crv": "P-384",
+        "kid": "asdf",
+        "x": "nLOVJpUpmXTn938BQCowEE6KBoI5mu9tbHrpe03INlxDHszibkV7yA8WNPap4Vzu",
+        "y": "-AVKyttfdqfus9xXblrGMIt1UGMxnqoQxv0pXmLtmiNYNJwM45_YQOCTBwg0h38I",
+        "alg": "ES384"
     }"#;
 
 static RSA_JWK_FIXTURE: &str = r#"{
@@ -50,15 +60,15 @@ fn deserialize_es256() {
             key: Box::new(Key::EC {
                 // The parameters were decoded using a 10-liner Rust script.
                 curve: Curve::P256,
-                d: Some(ByteArray::from_slice(&[
+                d: Some(ByteVec::from_slice(&[
                     102, 130, 144, 246, 62, 29, 132, 128, 101, 49, 21, 107, 191, 228, 6, 240, 255,
                     211, 246, 203, 173, 191, 127, 253, 229, 232, 168, 244, 203, 105, 128, 168
                 ])),
-                x: ByteArray::from_slice(&[
+                x: ByteVec::from_slice(&[
                     64, 227, 7, 154, 255, 122, 181, 89, 73, 191, 235, 141, 170, 154, 231, 13, 34,
                     136, 143, 144, 34, 45, 53, 202, 70, 137, 151, 98, 118, 175, 208, 221
                 ]),
-                y: ByteArray::from_slice(&[
+                y: ByteVec::from_slice(&[
                     78, 54, 25, 160, 121, 220, 181, 171, 68, 19, 163, 66, 172, 169, 151, 65, 210,
                     73, 62, 115, 115, 100, 69, 252, 156, 25, 153, 117, 237, 192, 99, 137
                 ])
@@ -78,8 +88,8 @@ fn serialize_es256() {
         key: Box::new(Key::EC {
             curve: Curve::P256,
             d: None,
-            x: ByteArray::from_slice(&[1u8; 32]),
-            y: ByteArray::from_slice(&[2u8; 32]),
+            x: ByteVec::from_slice(&[1u8; 32]),
+            y: ByteVec::from_slice(&[2u8; 32]),
         }),
         key_id: None,
         algorithm: None,
@@ -90,6 +100,34 @@ fn serialize_es256() {
     assert_eq!(
         jwk.to_string(),
         r#"{"kty":"EC","crv":"P-256","x":"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE","y":"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI"}"#
+    );
+}
+
+#[test]
+fn deserialize_es384() {
+    let jwk = JsonWebKey::from_str(P384_JWK_FIXTURE).unwrap();
+    assert_eq!(
+        jwk,
+        JsonWebKey {
+            key: Box::new(Key::EC {
+                // The parameters were decoded using a 10-liner Rust script.
+                curve: Curve::P384,
+                d: Some(ByteVec::from_slice(&[
+                    0x62, 0xd1, 0x53, 0x00, 0xe8, 0xd2, 0xd6, 0x48, 0xec, 0xf3, 0xc6, 0xae, 0x1b, 0x6a, 0xe6, 0x56, 0xb0, 0x5e, 0x92, 0xcd, 0xcf, 0x2d, 0x2c, 0xcf, 0xe0, 0x4e, 0xaf, 0x7a, 0x65, 0x27, 0x25, 0x5d, 0xc3, 0xdc, 0x30, 0x80, 0x81, 0x93, 0x5f, 0xac, 0x05, 0xce, 0x37, 0x70, 0x98, 0xb7, 0xdc, 0x8d
+                ])),
+                x: ByteVec::from_slice(&[
+                    0x9c, 0xb3, 0x95, 0x26, 0x95, 0x29, 0x99, 0x74, 0xe7, 0xf7, 0x7f, 0x01, 0x40, 0x2a, 0x30, 0x10, 0x4e, 0x8a, 0x06, 0x82, 0x39, 0x9a, 0xef, 0x6d, 0x6c, 0x7a, 0xe9, 0x7b, 0x4d, 0xc8, 0x36, 0x5c, 0x43, 0x1e, 0xcc, 0xe2, 0x6e, 0x45, 0x7b, 0xc8, 0x0f, 0x16, 0x34, 0xf6, 0xa9, 0xe1, 0x5c, 0xee
+                ]),
+                y: ByteVec::from_slice(&[
+                    0xf8, 0x05, 0x4a, 0xca, 0xdb, 0x5f, 0x76, 0xa7, 0xee, 0xb3, 0xdc, 0x57, 0x6e, 0x5a, 0xc6, 0x30, 0x8b, 0x75, 0x50, 0x63, 0x31, 0x9e, 0xaa, 0x10, 0xc6, 0xfd, 0x29, 0x5e, 0x62, 0xed, 0x9a, 0x23, 0x58, 0x34, 0x9c, 0x0c, 0xe3, 0x9f, 0xd8, 0x40, 0xe0, 0x93, 0x07, 0x08, 0x34, 0x87, 0x7f, 0x08
+                ])
+            }),
+            algorithm: Some(Algorithm::ES384),
+            key_id: Some("asdf".into()),
+            key_ops: KeyOps::empty(),
+            key_use: Some(KeyUse::Signing),
+            x5: Default::default(),
+        }
     );
 }
 

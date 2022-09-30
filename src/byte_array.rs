@@ -8,7 +8,7 @@ use zeroize::{Zeroize, Zeroizing};
 /// A zeroizing-on-drop container for a `[u8; N]` that deserializes from base64.
 #[derive(Clone, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
-pub struct ByteArray<N: ArrayLength<u8>>(
+pub(crate) struct ByteArray<N: ArrayLength<u8>>(
     #[serde(serialize_with = "crate::utils::serde_base64::serialize")] GenericArray<u8, N>,
 );
 
@@ -45,11 +45,11 @@ impl<N: ArrayLength<u8>> std::ops::Deref for ByteArray<N> {
 
 impl<N: ArrayLength<u8>> ByteArray<N> {
     /// An unwrapping version of `try_from_slice`.
-    pub fn from_slice(bytes: impl AsRef<[u8]>) -> Self {
+    pub(crate) fn from_slice(bytes: impl AsRef<[u8]>) -> Self {
         Self::try_from_slice(bytes).unwrap()
     }
 
-    pub fn try_from_slice(bytes: impl AsRef<[u8]>) -> Result<Self, String> {
+    pub(crate) fn try_from_slice(bytes: impl AsRef<[u8]>) -> Result<Self, String> {
         let bytes = bytes.as_ref();
         if bytes.len() != N::USIZE {
             Err(format!(
