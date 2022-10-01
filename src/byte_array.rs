@@ -45,9 +45,6 @@ impl<N: ArrayLength<u8>> std::ops::Deref for ByteArray<N> {
 
 impl<N: ArrayLength<u8>> ByteArray<N> {
     /// An unwrapping version of `try_from_slice`.
-    pub(crate) fn from_slice(bytes: impl AsRef<[u8]>) -> Self {
-        Self::try_from_slice(bytes).unwrap()
-    }
 
     pub(crate) fn try_from_slice(bytes: impl AsRef<[u8]>) -> Result<Self, String> {
         let bytes = bytes.as_ref();
